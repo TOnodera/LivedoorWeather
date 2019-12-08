@@ -1,5 +1,6 @@
 package com.example.livedoorweather
 
+import android.content.Context
 import android.os.AsyncTask
 import android.util.Log
 import android.widget.SimpleAdapter
@@ -20,7 +21,14 @@ import com.example.livedoorweather.MainActivity as ComExampleLivedoorweatherMain
 
 
 //表示可能なエリア情報を取得する為のクラス
-class AreaInfoReceiver(spinner : Spinner) : AsyncTask<Void, String, Document>(){
+class AreaInfoReceiver(applicationContext : Context, spinner: Spinner) : AsyncTask<Void, String, Document>(){
+
+    val _applicationContext : Context
+    val _areaSpinner : Spinner
+    init{
+        _applicationContext = applicationContext
+        _areaSpinner = spinner
+    }
 
     //エリア情報を取得するためのURL
     val areaXmlUrl : String = "http://weather.livedoor.com/forecast/rss/primary_area.xml"
@@ -146,22 +154,30 @@ class AreaInfoReceiver(spinner : Spinner) : AsyncTask<Void, String, Document>(){
         /**
          * 要検討：表示するデータなににする？とりあえず地域名と市町村名を連結して表示。キーはIDにする。
          */
-        var listForSimpleAdapter : MutableList<Map<String,String>> = mutableListOf()
-        var cityMap : MutableMap<String,String> = mutableMapOf()
+        var listForSimpleAdapter : MutableList<MutableMap<String,String>> = mutableListOf()
+        var from = arrayOf("cityId","areaInfoTxt")
+        var to = intArrayOf(android.R.id.text1,android.R.id.text1)
         for(areaInfo in areaInfoAll){
+            Log.i("areaInfo: ",areaInfo.toString())
             for(detail in areaInfo){
+                Log.i("detail",detail.toString())
                 val cityId = detail.key
                 val areaName = detail.value[0]["areaName"]
                 val cityName = detail.value[1]["cityName"]
+                Log.i("areaName",areaName)
+                Log.i("cityName",cityName)
                 //val areaWarnUrl = detail.value[2]["areaWarnUrl"]
                 //val cityUrl = detail.value[3]["cityUrl"] //（id）.xmlの形でデータが提供されるのであればこの情報もいらない？
-                val areainfoTxt = "${areaName}:${cityName}"
-                val areaInfoMap = mutableMapOf(cityId to areainfoTxt)
+                val areaInfoTxt = "${cityName} [${areaName}]"
+                val areaInfoMap = mutableMapOf<String,String>()
+                areaInfoMap.put("cityId",cityId)
+                areaInfoMap.put("areaInfoTxt",areaInfoTxt)
                 listForSimpleAdapter.add(areaInfoMap)
             }
         }
 
-
+        val adapter = SimpleAdapter(_applicationContext,listForSimpleAdapter,android.R.layout.simple_spinner_item,from,to)
+        _areaSpinner.adapter = adapter
     }
 
 }
