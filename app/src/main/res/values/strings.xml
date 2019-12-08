@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Livedoorお天気</string>
+    <string name="tvAreaName">表示エリア</string>
+    <string name="btnRegister">登録</string>
+    <!-- dummy -->
+    <string-array name="spinerArea">
+        <item>dummy</item>
+        <item>dummy</item>
+        <item>dummy</item>
+        <item>dummy</item>
+    </string-array>
+</resources>
