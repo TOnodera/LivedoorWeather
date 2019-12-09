@@ -16,8 +16,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
-import kotlin.coroutines.coroutineContext
-import com.example.livedoorweather.MainActivity as ComExampleLivedoorweatherMainActivity
+
 
 
 //表示可能なエリア情報を取得する為のクラス
@@ -52,7 +51,7 @@ class AreaInfoReceiver(applicationContext : Context, spinner: Spinner) : AsyncTa
 
         val elements : Element = getDocumentElement(result)
         val prefNodes : NodeList = elements.getElementsByTagName("pref")
-        val areaInfoAll : MutableList<MutableMap<String,MutableList<MutableMap<String,String>>>> = getAreaInfo(prefNodes)
+        val areaInfoAll : MutableList<MutableMap<String,String>> = getAreaInfo(prefNodes)
 
         /**
          * 描画テスト　機能はテスト後に分ける
@@ -94,34 +93,25 @@ class AreaInfoReceiver(applicationContext : Context, spinner: Spinner) : AsyncTa
         return element
     }
 
-    private fun getAreaInfo(prefNodes : NodeList) : MutableList<MutableMap<String,MutableList<MutableMap<String,String>>>> {
+    private fun getAreaInfo(prefNodes : NodeList) : MutableList<MutableMap<String,String>> {
 
         //APIから取得したエリア情報をリストオブジェクトにして返すデータ構造としては
         //{"ID" : {name "エリア名",url: "URL"}}にしたいので
         //MutableList<MutableMap<MutableMap<String,Array>>にしてある。
 
-        val result: MutableList<MutableMap<String, MutableList<MutableMap<String, String>>>> = mutableListOf()
-        var areaInfo: MutableMap<String, MutableList<MutableMap<String, String>>>
-        var areaName: MutableMap<String, String>
-        var areaWarnUrl: MutableMap<String, String> = mutableMapOf()
-        var resultList: MutableList<MutableMap<String, String>> = mutableListOf()
+        var result: MutableList<MutableMap<String,String>> = mutableListOf()
 
         for (i in 0..prefNodes.length) {
-
-
-
             if (prefNodes.item(i) != null) {
 
                 val prefNode = prefNodes.item(i) as Element
-
-                //地域名を取得
-                areaName = mutableMapOf("areaName" to prefNode.getAttribute("title"))
-
+                val areaName = prefNode.getAttribute("title")
                 //警報URLを取得
                 val warnNode = prefNode.getElementsByTagName("warn")
+                var warnSource = ""
                 if (warnNode.item(0) != null) {
                     val warnTag = warnNode.item(0) as Element
-                    areaWarnUrl = mutableMapOf("areaWarnUrl" to warnTag.getAttribute("source"))
+                    warnSource = warnTag.getAttribute("source")
                 }
 
                 //市町村名・ID・URLを取得
@@ -129,27 +119,29 @@ class AreaInfoReceiver(applicationContext : Context, spinner: Spinner) : AsyncTa
                 for (j in 0..cityNode.length) {
                     if (cityNode.item(j) != null) {
 
+                        val rowData : MutableMap<String, String> = mutableMapOf()
                         val cityNodeItem = cityNode.item(j) as Element
                         val cityId = cityNodeItem.getAttribute("id")
-                        val cityName =
-                            mutableMapOf("cityName" to cityNodeItem.getAttribute("title"))
-                        val cityUrl = mutableMapOf("cityUrl" to cityNodeItem.getAttribute("source"))
+                        val cityName = cityNodeItem.getAttribute("title")
+                        val cityUrl = cityNodeItem.getAttribute("source")
 
-                        resultList.add(areaName)
-                        resultList.add(cityName)
-                        resultList.add(areaWarnUrl)
-                        resultList.add(cityUrl)
+                        rowData.put("areaName",areaName)
+                        rowData.put("areaWarnUrl",warnSource)
+                        rowData.put("cityName",cityName)
+                        rowData.put("cityUrl",cityUrl)
+                        rowData.put("cityId",cityId)
 
-                        areaInfo = mutableMapOf(cityId to resultList)
-                        result.add(areaInfo)
+                        result.add(rowData)
                     }
                 }
             }
         }
+
         return result
     }
 
-    private fun showAreaSpinner(areaInfoAll : MutableList<MutableMap<String,MutableList<MutableMap<String,String>>>>){
+    private fun showAreaSpinner(areaInfoAll : MutableList<MutableMap<String,String>>){
+
 
         /**
          * 要検討：表示するデータなににする？とりあえず地域名と市町村名を連結して表示。キーはIDにする。
@@ -158,26 +150,21 @@ class AreaInfoReceiver(applicationContext : Context, spinner: Spinner) : AsyncTa
         var from = arrayOf("cityId","areaInfoTxt")
         var to = intArrayOf(android.R.id.text1,android.R.id.text1)
         for(areaInfo in areaInfoAll){
-            Log.i("areaInfo: ",areaInfo.toString())
-            for(detail in areaInfo){
-                Log.i("detail",detail.toString())
-                val cityId = detail.key
-                val areaName = detail.value[0]["areaName"]
-                val cityName = detail.value[1]["cityName"]
-                Log.i("areaName",areaName)
-                Log.i("cityName",cityName)
-                //val areaWarnUrl = detail.value[2]["areaWarnUrl"]
-                //val cityUrl = detail.value[3]["cityUrl"] //（id）.xmlの形でデータが提供されるのであればこの情報もいらない？
-                val areaInfoTxt = "${cityName} [${areaName}]"
-                val areaInfoMap = mutableMapOf<String,String>()
-                areaInfoMap.put("cityId",cityId)
-                areaInfoMap.put("areaInfoTxt",areaInfoTxt)
-                listForSimpleAdapter.add(areaInfoMap)
-            }
+
+            val areaInfoMap = mutableMapOf<String,String>()
+            var cityId = "${areaInfo.get("cityId")}"
+            var areaInfoTxt = "${areaInfo.get("cityName")} [${areaInfo.get("areaName")}]"
+
+            areaInfoMap.put("cityId",cityId)
+            areaInfoMap.put("areaInfoTxt",areaInfoTxt)
+
+            listForSimpleAdapter.add(areaInfoMap)
+
         }
 
         val adapter = SimpleAdapter(_applicationContext,listForSimpleAdapter,android.R.layout.simple_spinner_item,from,to)
         _areaSpinner.adapter = adapter
+
     }
 
 }
