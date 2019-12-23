@@ -1,12 +1,7 @@
 <resources>
     <string name="app_name">Livedoorお天気</string>
-    <string name="tvAreaName">表示エリア</string>
-    <string name="btnRegister">登録</string>
-    <!-- dummy -->
-    <string-array name="spinerArea">
-        <item>dummy</item>
-        <item>dummy</item>
-        <item>dummy</item>
-        <item>dummy</item>
-    </string-array>
+    <string name="tvAreaName">エリア選択</string>
+    <string name="btnRegister">変更</string>
+    <string name="tvDetail">お天気詳細</string>
+    <string name="tv2DaysAgo">今後2日間のお天気予報</string>
 </resources>

@@ -59,23 +59,6 @@ class AreaInfoReceiver(applicationContext : Context, spinner: Spinner) : AsyncTa
         showAreaSpinner(areaInfoAll)
     }
 
-    private fun inputStreamToString(stream : InputStream?) : String{
-
-        val sb = StringBuilder()
-        val reader = BufferedReader(InputStreamReader(stream,"UTF-8"))
-        var line : String?
-
-        do{
-            line = reader.readLine()
-            if(line!=null){
-                sb.append(line)
-            }
-        }while(line!=null)
-
-        reader.close()
-        return sb.toString()
-
-    }
 
     //文字列をDocumentオブジェクトに変換
     private fun inputStreamToDocument(xmlStream : InputStream) : Document {
